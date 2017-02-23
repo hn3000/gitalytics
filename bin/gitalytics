@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+let {main} = require('../out/src/index.js')
+
+main(process.argv.slice(2));

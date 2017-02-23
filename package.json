@@ -1,0 +1,13 @@
+{
+  "name": "gitalytics",
+  "version": "1.0.0",
+  "description": "git log analytics",
+  "main": "out/src/index.js",
+  "bin": "bin/gitalytics",
+  "scripts": {
+    "test": "test out/tests/allTests.js",
+    "tsc": "tsc"
+  },
+  "author": "",
+  "license": "ISC"
+}
