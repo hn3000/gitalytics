@@ -8,7 +8,7 @@ import * as readline from 'readline';
 
 const RE_commit = /^([0-9a-z]{30,})\s(.*)$/;
 const RE_fileEntry = /^(\d+|-)\s+(\d+|-)\s+(.*)$/;
-const RE_issue = /\[?([A-Za-z]+-\d+)\]?:/;
+const RE_issue = /(:?\[?([A-Za-z]{3,}[- ]*(:?\d+|X{3,}))\]?:?|\[[-a-zA-Z]+\])/;
 
 
 interface IFileEntry {
@@ -35,7 +35,9 @@ interface IResult {
   },
   issues: {
     [id:string]: IIssueEntry;
-  }
+  },
+
+  others: string[];
 }
 
 function collect(input: Readable, issueRE:RegExp = RE_issue, ignoreFiles?:RegExp) {
@@ -45,14 +47,20 @@ function collect(input: Readable, issueRE:RegExp = RE_issue, ignoreFiles?:RegExp
   let issue = null;
   let files: IFileEntries = {};
   let issues: { [issue:string]: IIssueEntry } = {};
-  
+  let others: string[] = [];
+
   reader.on('line', (line) => {
     let m: RegExpExecArray;
     if (null != (m = RE_commit.exec(line))) {
       commit = m[1];
       message = m[2];
       let mi = issueRE.exec(message);
-      issue = !mi ? null : mi[1];
+      issue = !mi ? null : (mi[2] || mi[1]);
+
+      if (!issue) {
+        others.push(line);
+      }
+
     } else if (null != (m = RE_fileEntry.exec(line))) {
       let name = m[3];
       if (!ignoreFiles || !ignoreFiles.test(name)) {
@@ -92,7 +100,8 @@ function collect(input: Readable, issueRE:RegExp = RE_issue, ignoreFiles?:RegExp
   input.on('end', () => {    
     let result: IResult = {
       files: sortedHash(files, (a,b)=>b.issues.size - a.issues.size), 
-      issues: sortedHash(issues, (a,b)=>b.files.size-a.files.size)
+      issues: sortedHash(issues, (a,b)=>b.files.size-a.files.size),
+      others
     };
     console.log(JSON.stringify(result, collectionsAsArrays, 2));
   });
@@ -128,7 +137,7 @@ export function main(av: string[]) {
     lastSize = argv.length;
     switch (argv[0]) {
       case '--ignore-images': 
-        ignoreFiles = /\.(jpg|jpeg|png|gif)$/;
+        ignoreFiles = /\.(jpg|jpeg|png|gif)($|\/)/;
         argv = argv.slice(1);
         break;
       case '--ignore-files':

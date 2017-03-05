@@ -56,11 +56,11 @@ To give an example, the JSON will look like this:
 The files are sorted by number of changes, the issues are sorted by number of
 changed files.
 
-But it's easy to pull out other metrics:
+And it's easy to pull out other metrics:
 
     node -p "Object.values(require('./git-stats.json').files)
-    .map(x => [x.name, Math.round(x.issues.length ? x.commits.length/x.issues.length : 0)])
+    .map(x => [x.name, Math.round(x.issues.length ? x.commits.length/x.issues.length : 0), x.issues, x.commits])
     .sort((a,b) => (-a[1] + b[1]))
     .slice(0, 30)"
 
-Gives you the top 30 files that had the most changes per issue.
+This shows the top 30 files that had the most changes per issue.
